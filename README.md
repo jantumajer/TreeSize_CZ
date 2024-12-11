@@ -2,7 +2,7 @@
 Data and scripts associated with the manuscript “Trend towards larger and more moisture-limited trees in Central-European temperate forests”
 
 ## Inputs
-Input data involves (i) “sitef2.csv” - site characteristics of sample sites from TreeDataClim database (www.treedataclim,cz). This file is used also for matching sites with rwl files. (ii) Rwl files are attached for testing. The remaining rwl files are available upon request through TreeDataClim website. (iii) Input data also includes climatic surfaces used for extraction of climatic data for each site (precipitation – “sra_wgs_month.nc” , temperature – “t_wgs_month.nc”). For detailed description see Mašek et al. 2024 in Science of the Total Environment.
+Input data involves (i) “sitef2.csv” - site characteristics of sample sites from TreeDataClim database (www.treedataclim.cz). This file is used also for matching sites with rwl files. (ii) Rwl files are attached for testing. The remaining rwl files are available upon request through TreeDataClim website. (iii) Input data also includes climatic surfaces used for extraction of climatic data for each site (precipitation – “sra_wgs_month.nc” , temperature – “t_wgs_month.nc”). For detailed description see Mašek et al. 2024 in Science of the Total Environment.
 
 ## R scripts
 #### Age structure adjustment

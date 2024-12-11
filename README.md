@@ -5,7 +5,7 @@ Data and scripts associated with the manuscript “Trend towards larger and more
 Input data involves (i) “sitef2.csv” - site characteristics of sample sites from TreeDataClim database (www.treedataclim,cz). This file is used also for matching sites with rwl files. (ii) Rwl files are attached for testing. The remaining rwl files are available upon request through TreeDataClim website. (iii) Input data also includes climatic surfaces used for extraction of climatic data for each site (precipitation – “sra_wgs_month.nc” , temperature – “t_wgs_month.nc”). For detailed description see Mašek et al. 2024 in Science of the Total Environment.
 
 ### R scripts
-## Age structure adjustment
+#### Age structure adjustment
 This script was used to adjust the age structures of samples to create datasets 1990 and 2015. As inputs the sitef2.csv and rwl files are used. Script is provided in two slightly different variants used for Picea abies and Abies alba, and for the remaining species (Pinus sylvestris, Fagus sylvatica, Quercus sp.). 
 ## Climatic response calculation
 Script reads data from climatic surfaces (t_wgs_month.nc, sra_wgs_month.nc) for each site, build tree-ring chronology, detrend SPEI time-series and calculates correlations between tree-ring chronology and SPEI for two periods before and after 1990. As inputs the sitef2.csv, rwl files and climatic surfaces are used.

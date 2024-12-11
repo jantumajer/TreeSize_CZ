@@ -1,0 +1,7 @@
+"","site_code","site_name","elevation","site_category","raw_data_file_name","site_lat","site_long","species"
+"1","P800049QUSP","LU_514D_QUSP",385,"moderate","P800049QUSP.rwl",48.8748892,17.54886,"QUSP"
+"2","P800051PISY","CH_672C_PISY",355,"moderate","P800051PISY.rwl",49.35751,16.5008,"PISY"
+"3","P800057PISY","NM_741B_PISY",620,"moderate","P800057PISY.rwl",49.523,16.319,"PISY"
+"4","P800058PCAB","NM_647A_PCAB",540,"moderate","P800058PCAB.rwl",49.438,16.041,"PCAB"
+"5","P800058PISY","NM_647A_PISY",540,"moderate","P800058PISY.rwl",49.438,16.041,"PISY"
+"6","P800059PISY","NM_617A_PISY",545,"moderate","P800059PISY.rwl",49.437,16.044,"PISY"

@@ -1,0 +1,90 @@
+library(dplR);library(base);library(ncdf4);library(raster);library(SPEI);library(treeclim);library(tidyr)
+
+
+##open nc climatic surfaces##
+temp <- nc_open("t_wgs_month.nc")
+prec <- nc_open("sra_wgs_month.nc")
+
+##create data storage table##
+growtable0 <- data.frame(series = NA, treespec = NA, categ = NA, elev = NA, corS90=NA, corS20=NA, size = NA, age = NA)
+
+
+##sitef2.csv is a file exported from treedataclim database##
+SITE<- sitef2
+
+##for cycle - create time series of temp, prec, calculate SPEI, create site chronology, detrend SPEI, calculate correlation between chronologies and SPEI data for two datasets 1990 and 2015##
+
+for (i in c(1:nrow(SITE))) {
+STORAGE_T <- data.frame(TIMESTAMP = seq(from = as.Date("19610101", tryFormats = c("%Y%m%d")), to = as.Date("20201201", tryFormats = c("%Y%m%d")), by = "month"))
+STORAGE_P <- data.frame(TIMESTAMP = seq(from = as.Date("19610101", tryFormats = c("%Y%m%d")), to = as.Date("20201201", tryFormats = c("%Y%m%d")), by = "month"))
+site1x <- SITE[i, "site_long"]; site1y <- SITE[i, "site_lat"]
+Order.X <- data.frame(ORDER = c(1:temp$dim$x$len), GRID = ncvar_get(nc = temp, varid = "x"))
+Order.Y <- data.frame(ORDER = c(1:temp$dim$y$len), GRID = ncvar_get(nc = temp, varid = "y"))
+Order.X$DIFFERENCE <- abs(Order.X$GRID - site1x)
+Order.Y$DIFFERENCE <- abs(Order.Y$GRID - site1y)
+site1x.order <- Order.X[Order.X$DIFFERENCE == min(Order.X$DIFFERENCE),"ORDER"]
+site1y.order <- Order.Y[Order.Y$DIFFERENCE == min(Order.Y$DIFFERENCE),"ORDER"]
+STORAGE_T[,"Temperature"] <- ncvar_get(nc = temp, varid = "T", start = c(site1x.order, site1y.order, 1), count = c(1,1,-1))
+STORAGE_P[,"Precipitation"] <- ncvar_get(nc = prec, varid = "SRA", start = c(site1x.order, site1y.order, 1), count = c(1,1,-1))
+STORAGE_T$YEAR<- lapply(strsplit(as.character(STORAGE_T$TIMESTAMP), "\\-"), "[",1)
+STORAGE_T$MONTH<- lapply(strsplit(as.character(STORAGE_T$TIMESTAMP), "\\-"), "[",2)
+STORAGE_T$TIMESTAMP<- NULL
+Temp<- pivot_wider(STORAGE_T, names_from = MONTH, values_from = Temperature)
+Temp <- as.data.frame(lapply(Temp, unlist))
+Temp$YEAR<- as.numeric(Temp$YEAR)
+Temp_SPEI<- Temp[,2:13]
+rownames(Temp_SPEI)<- Temp$YEAR
+STORAGE_P$YEAR<- lapply(strsplit(as.character(STORAGE_P$TIMESTAMP), "\\-"), "[",1)
+STORAGE_P$MONTH<- lapply(strsplit(as.character(STORAGE_P$TIMESTAMP), "\\-"), "[",2)
+STORAGE_P$TIMESTAMP<- NULL
+Prec<- pivot_wider(STORAGE_P, names_from = MONTH, values_from = Precipitation)
+Prec <- as.data.frame(lapply(Prec, unlist))
+Prec$YEAR<- as.numeric(Prec$YEAR)
+Prec_SPEI<- Prec[,2:13]
+rownames(Prec_SPEI)<- Prec$YEAR
+PET<-thornthwaite(as.numeric(t(Temp_SPEI)),lat=50)
+SPEI_calc<-spei(as.numeric(t(Prec_SPEI))-PET,scale=2)
+SPEI<-as.data.frame(matrix(ncol=12,nrow=nrow(Temp_SPEI)))
+for(a in c(1:12))  {
+SPEI[,a]<-as.numeric(SPEI_calc$fitted)[seq(a,length(as.numeric(SPEI_calc$fitted)),12)]
+}
+colnames(SPEI)<-paste("S",1:12,sep="")
+rownames(SPEI)<-rownames(Temp_SPEI)
+SPEI$YEAR <- as.numeric(rownames(SPEI))
+SPEI<- SPEI[, c(13, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)]
+rownames(SPEI)<- NULL
+row.names(SPEI) = SPEI$YEAR
+SPEI<- SPEI[ ,-1]
+SPEIr<- as.rwl(SPEI)
+SPEIr<- SPEIr + 5
+SPEIdet<- detrend(SPEIr, method = "Spline", nyrs = 30, difference = TRUE)
+SPEIdet$YEAR <- as.numeric(rownames(SPEI))
+SPEIdet<- SPEIdet[, c(13, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)]
+rownames(SPEIdet)<- NULL
+SPEI90<-SPEIdet[c(2:30),]
+SPEI20<-SPEIdet[c(25:60),]
+serie1 <- read.rwl(paste("d:/rsrch/clanky_ja/treedataclimpaper/submit/datagithub/testscript/",SITE[i, "raw_data_file_name"], sep = ""))
+statser1<- rwl.stats(serie1)
+if ((min(statser1$first)) > 1960) {next}
+if ((max(statser1$last)) < 2005) {next}
+ate1<- detrend(serie1, method = "Spline", nyrs = 30)
+atecr<-chron(ate1, prewhitten = TRUE, biweight = T)
+TRI_COR_S90 <- dcc(atecr, SPEI90, selection= .range (6:8) + .mean(6:8), method="correlation", boot = "exact")
+tabcor90<-TRI_COR_S90$coef
+TRI_COR_S20 <- dcc(atecr, SPEI20, selection= .range (6:8) + .mean(6:8), method="correlation", boot = "exact")
+tabcor20<-TRI_COR_S20$coef
+serbai<-bai.in(rwl=serie1)
+serbai1<-as.rwl(serbai)
+serbaista<-rwl.stats(serbai1)
+siz1<- mean(serbaista$mean) * mean (serbaista$year)
+age1<- mean (serbaista$year)
+growtable0 [i, "series"] <- SITE$site_code[i]
+growtable0 [i, "treespec"] <- SITE$species[i]
+growtable0 [i, "categ"] <- SITE$site_category[i]
+growtable0 [i, "elev"] <- SITE$elevation[i]
+growtable0[i, "corS90"]<- tabcor90$coef [4]
+growtable0[i, "corS20"]<- tabcor20$coef [4]
+growtable0[i, "size"]<- siz1
+growtable0[i, "age"]<- age1
+rm(serie1, ate1,atecr, TRI_COR_S90, TRI_COR_S20, tabcor90, tabcor20, serbai, serbaista,siz1)
+}

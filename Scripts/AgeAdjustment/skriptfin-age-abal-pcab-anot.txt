@@ -1,0 +1,111 @@
+library(dplR);library(base)
+
+##data storage tables##
+growtable90 <- data.frame(series = NA, grate= NA, treespec = NA, center = NA, age = NA, categ = NA, elev = NA, numrows01 = NA, last90 = NA)
+growtable20 <- data.frame(series = NA, grate20 = NA,center20=NA, age20=NA, numrows20=NA, last20 = NA)
+
+##sitef2.csv is a file exported from treedataclim database##
+SITE<- sitef2
+
+
+for (i in c(1:nrow(SITE))) {
+
+##reading data, removal of sites with final year prior 2005##
+ 
+serie1 <- read.rwl(paste("d:/rsrch/clanky_ja/treedataclimpaper/submit/datagithub/testscript/",SITE[i, "raw_data_file_name"], sep = "")) 
+brak<- ncol(serie1)
+if (brak < 2) {next}
+statser1<- rwl.stats(serie1)
+statser01<- subset (statser1, last>2005)
+if (nrow(statser01) < 2) {next}
+
+##creation 1990 dataset, truncation of data at 1990, removal of too young and too old series##
+
+sernamesY<- statser01$series
+serie01<- serie1 [, c(sernamesY)]
+serie01$yr<- row.names(serie1)
+serie190<- subset(serie01, yr<1991)
+numrows190c<-nrow(serie190)
+if (numrows190c < 2) {next}
+serie190a<-subset(serie190, select = -(yr))
+numrows190a<-nrow(serie190a)
+numna<- sapply(serie190a, function (x) sum (is.na(x)))
+numnadf<- as.data.frame(numna)
+numnadf$rows = numrows190a
+numnadf$ind = numnadf$numna/numnadf$rows
+serall<-subset (numnadf, ind<1)
+sernames2<- row.names(serall)
+serie190b<- serie190a[, c(sernames2)]
+serie190sta<-rwl.stats(serie190b)
+serie190stab<- subset(serie190sta, first>1800)
+
+##selection of series older than median age, calculation of quantiles of 1990 dataset##
+
+q50<- quantile (serie190stab$year, probs = 0.50)
+serie190stac<- subset(serie190stab, year>=q50)
+q05<- quantile (serie190stac$year, probs = 0.05)
+q95<- quantile (serie190stac$year, probs = 0.90)
+numrows<- nrow(serie190stac)
+if (numrows < 3) {next}
+sernames<-serie190stac$series
+serie190f<- serie190b [, c(sernames)]
+serbai<-bai.in(rwl=serie190f)
+serbai1<-as.rwl(serbai)
+serbaista<-rwl.stats(serbai1)
+serbam<- mean(serbaista$mean)
+agem<- median(serbaista$year)
+serlast<- max (serbaista$last)
+sercenter<- ((mean(serbaista$last)- mean(serbaista$first))/2) + mean(serbaista$first)
+growtable90 [i, "series"] <- SITE$site_code[i]
+growtable90 [i, "treespec"] <- SITE$species[i]
+growtable90 [i, "grate"] <- serbam
+growtable90 [i, "center"] <- sercenter
+growtable90 [i, "age"] <- agem
+growtable90 [i, "categ"] <- SITE$site_categ[i]
+growtable90 [i, "elev"] <- SITE$elevation[i]
+growtable90[i, "numrows01"]<- nrow(serbaista)
+growtable90[i, "last90"]<- serlast
+
+##creation of 2015 dataset - resampling of original dataset, selection of series fitting the age distribution of 1990 dataset##
+
+serie200f<- serie1 [, c(sernames2)]
+serie200sta<-rwl.stats(serie200f)
+serie200stac<- subset(serie200sta, serie200sta$first>1800 & serie200sta$year>=q05 - 5 & serie200sta$year<=q95-5)
+numrows200<- nrow(serie200stac)
+
+if (numrows200 < 3) {next}
+
+sernames200<-serie200stac$series
+serie200f1<- serie200f [, c(sernames200)]
+serbai200<-bai.in(rwl=serie200f1)
+serbai200f<-as.rwl(serbai200)
+serbaista200<-rwl.stats(serbai200f)
+serbam200<- mean(serbaista200$mean)
+agem200<- median(serbaista200$year)
+serlast20<- max (serbaista200$last)
+sercenter200<- ((mean(serbaista200$last)- mean(serbaista200$first))/2) + mean(serbaista200$first)
+growtable20 [i, "series"] <- SITE$site_code[i]
+growtable20 [i, "grate20"] <- serbam200
+growtable20 [i, "center20"] <- sercenter200
+growtable20 [i, "age20"] <- agem200
+growtable20[i, "numrows20"]<- nrow(serbaista200)
+growtable20[i, "last20"]<- serlast20
+
+
+
+rm(serie1,serie01, serie190, serie190a, serie190sta, serie190stab,serie190f, sernames, sernamesY, serbai, serbai1, serbaista, serbam, agem, numrows, numrows190a, numna, numnadf, serall, sernames2, serie190f, brak, numrows190c, sercenter, statser1, q05, q50, q95, serie190stac, serie200stad, statser01)  
+}
+
+##subsetting sites with small age differences, calculation of diameters and their differences##
+
+g20<- subset (growtable20, age20>0)
+g90<- subset (growtable90, age>0)
+growdif<- merge(g20, g90, by = "series")
+growdif1<- subset (growdif, grate20<8000&grate<8000)
+growdif1$agedif<- abs (growdif1$age20 - growdif1$age)
+growdif1$agedif1<- growdif1$agedif/ ((growdif1$age20+growdif1$age)/2)
+growdif2<- subset (growdif1, agedif1 <0.15)
+View(growdif2)
+growdif2$d90<- (sqrt((100*growdif2$grate)/3.14159265359))/5
+growdif2$d20<- (sqrt((100*growdif2$grate20)/3.14159265359))/5
+growdif2$ddif<- growdif2$d20 - growdif2$d90

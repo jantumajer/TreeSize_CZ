@@ -3,8 +3,8 @@
 ## Inputs
 Input data involves (i) `sitef2.csv` - site characteristics of sample sites from TreeDataClim database (www.treedataclim.cz/en). This file is used also for matching sites with rwl files. (ii) Rwl files are attached for testing. The remaining rwl files are available upon request through TreeDataClim website. 
 
-## Climatic surfaces
-Nc files with climatic surfaces are too large to store in GitHub repository, but may be downloaded from They can be used to extract climatic data for each site (precipitation – `sra_wgs_month.nc` , temperature – `t_wgs_month.nc`). For detailed description see Mašek et al. 2024 in Science of the Total Environment.
+## Climatic surfaces (inputs)
+Nc files with climatic surfaces are too large to store in GitHub repository, but may be downloaded from Google Disk[https://drive.google.com/drive/folders/1P5OBQpxR_nSu-SeSGyPLQqbuWhXpw6h0?usp=sharing] They can be used to extract climatic data for each site (precipitation – `sra_wgs_month.nc` , temperature – `t_wgs_month.nc`). For detailed description see Mašek et al. 2024 in Science of the Total Environment.
 
 ## R scripts
 #### Age structure adjustment

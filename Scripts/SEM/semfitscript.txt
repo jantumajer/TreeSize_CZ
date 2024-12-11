@@ -1,0 +1,35 @@
+
+library(sf), library(sp), library(spatialreg), library(spdep), library(raster), library(piecewiseSEM)
+
+
+##data from pcabsem.csv##
+
+##creating site couples within defined distance##
+
+neighbours <- dnearneigh(as.matrix(pcabsem[, c("LON_geogr", "LAT_geogr")]), d1 = 0, d2 = 0.7)
+neighbours.list <- nb2listw(neighbours, style = "W")
+
+
+##fitting linear models and testing for spatial autocorrelation##
+lmpcspat <- lm(ddif ~ grate20 + cwb + twi + PC1 + PC2 , data = pcabsem)
+summary(lmpcspat)
+lm.morantest(lmpcspat, neighbours.list,  alternative = "greater")
+lm.LMtests(lmpcspat, neighbours.list, test="LMerr", zero.policy = T)
+lm.LMtests(lmpcspat, neighbours.list, test="LMlag", zero.policy = T)
+lmpcspat1 <- lm(grate20 ~ cwb + twi + PC1 + PC2 , data = pcabsem)
+lm.morantest(lmpcspat1, neighbours.list,  alternative = "greater")
+lm.LMtests(lmpcspat1, neighbours.list, test="LMerr", zero.policy = T)
+lm.LMtests(lmpcspat1, neighbours.list, test="LMlag", zero.policy = T)
+lmpcspat2 <- lm(PC1 ~ cwb + twi , data = pcabsem)
+lm.morantest(lmpcspat2, neighbours.list,  alternative = "greater")
+lm.LMtests(lmpcspat2, neighbours.list, test="LMerr", zero.policy = T)
+lm.LMtests(lmpcspat2, neighbours.list, test="LMlag", zero.policy = T)
+lmpcspat3 <- lm(PC2 ~ cwb + twi, data = pcabsem)
+lm.morantest(lmpcspat3, neighbours.list,  alternative = "greater")
+lm.LMtests(lmpcspat3, neighbours.list, test="LMerr", zero.policy = T)
+lm.LMtests(lmpcspat3, neighbours.list, test="LMlag", zero.policy = T)
+
+##fitting appropriate models within the framework of piecewise SEM##
+
+psem01_pcab <- psem(errorsarlm(ddif ~ grate20 + cwb + twi + PC1 + PC2, data = pcabsem, listw = neighbours.list, na.action = "na.fail"), lm(grate20 ~  cwb + twi + PC1 + PC2, data = pcabsem),errorsarlm (PC1 ~  cwb + twi, data = pcabsem, listw = neighbours.list, na.action = "na.fail"), errorsarlm (PC2 ~  cwb + twi, data = pcabsem, listw = neighbours.list, na.action = "na.fail"))
+plot(psem01_pcab)

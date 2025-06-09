@@ -1,4 +1,4 @@
-# Data and scripts associated with the manuscript “Trend towards larger and more moisture-limited trees in Central-European temperate forests”
+# Data and scripts associated with the manuscript “Rapid trend towards larger and more moisture-limited trees in Central-European temperate forests”
 
 ## Inputs
 Input data involves (i) `sitef2.csv` - site characteristics of sample sites from TreeDataClim database (www.treedataclim.cz/en). This file is used also for matching sites with rwl files. (ii) Rwl files are attached for testing. The remaining rwl files are available upon request through TreeDataClim website. 
